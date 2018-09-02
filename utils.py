@@ -1,26 +1,31 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 from flask.json import JSONEncoder
+from flask_sqlalchemy import SQLAlchemy
 
-_db = None
+import settings
+
+
+__db = None
 
 
 class Encoder(JSONEncoder):
-	def default(self, obj):
-		if hasattr(obj, "serialize"):
-			return obj.serialize()
-		return super(Encoder, self).default(obj)
+    def default(self, obj):
+        if hasattr(obj, "serialize"):
+            return obj.serialize()
+        return super(Encoder, self).default(obj)
+
 
 def get_db():
-	global _db
-	if not _db:
-		get_app()
-	return _db
+    global __db
+    if not __db:
+        get_app()
+    return __db
+
 
 def get_app():
-	global _db
-	app = Flask(__name__)
-	app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@172.16.29.32/zabbix'
-	app.json_encoder = Encoder
-	_db = SQLAlchemy(app)
-	return app
+    global __db
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = settings.DATABASE_URI
+    app.json_encoder = Encoder
+    __db = SQLAlchemy(app)
+    return app
