@@ -1,4 +1,5 @@
 from flask.views import MethodView
+from views import APIView
 from flask import jsonify
 from flask import request
 from models import TagModel
@@ -7,13 +8,23 @@ import datetime
 from utils import get_db
 import json
 
+from validate import Validater, StringValidate, NumberValidate
 
-class TagView(MethodView):
+class TagView(APIView):
+
+
 
     def get(self):
-        current_page = int(request.args.get("currentPage", 1))
-        page_size = int(request.args.get("pageSize", 8))
-        search_text = request.args.get("searchText", "")
+        # params
+        validater = Validater()
+        validater.add(NumberValidate("current_page", default=1, min=1))
+        validater.add(NumberValidate("page_size", default=8, min=1))
+        validater.add(StringValidate("search_text", ""))
+
+        current_page, page_size, search_text = validater.run()
+
+        # get
+
         if search_text:
             count = TagModel.query.filter(TagModel.name.like("%{0}%".format(search_text))).count()
             data = TagModel.query.filter(TagModel.name.like("%{0}%".format(search_text)))\
@@ -22,24 +33,24 @@ class TagView(MethodView):
             count = TagModel.query.count()
             data = TagModel.query.order_by(TagModel.id).limit(page_size).\
                 offset(page_size * (current_page - 1)).all()
-        return jsonify({"Code": 200,
-                        "Message": "",
-                        "Data": {
-                            "Count": count,
-                            "List": data
-                        }})
+        return { "count": count, "list": data}
 
     def post(self):
-        db = get_db()
-        data = json.loads(request.get_data())
-        name = data.get("name")
-        color = data.get("color")
-        tag = TagModel(name=name, color=color, tag_id=str(uuid.uuid4()), create_at=datetime.datetime.now())
+        # params
+        validater = Validater()
+        validater.add(StringValidate("name", required=True))
+        validater.add(StringValidate("color", required=True))
+        name, color = validater.run()
+
+        # create
+        TagModel.create(name=name, color=color)
+
+        tag= TagModel(name=name, color=color, tag_id=TagModel.geterate_tag_id(),
+                    create_at=datetime.datetime.now())
         db.session.add(tag)
         db.session.commit()
-        return jsonify({"Code": 200,
-                        "Message": "",
-                        "Data": None})
+
+        return None
 
     def put(self):
         db = get_db()

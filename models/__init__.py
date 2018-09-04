@@ -1,4 +1,6 @@
-from utils import get_db
+from utils import get_db, generate_id
+import datetime
+
 
 db = get_db()
 
@@ -18,6 +20,7 @@ class TagModel(db.Model):
     update_at = db.Column(db.TIMESTAMP(True))
     delete_at = db.Column(db.TIMESTAMP(True))
 
+
     def serialize(self):
         return {
             "id": self.id,
@@ -28,3 +31,14 @@ class TagModel(db.Model):
             "update_at": strftime(self.update_at),
             "delete_at": strftime(self.delete_at)
         }
+
+    @staticmethod
+    def geterate_tag_id():
+        return 'tag-' + generate_id(8)
+
+    @classmethod
+    def create(cls, name, color):
+        tag= cls(name=name, color=color, tag_id=TagModel.geterate_tag_id(),
+                    create_at=datetime.datetime.now())
+        db.session.add(tag)
+        db.session.commit()

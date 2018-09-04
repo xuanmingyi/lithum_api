@@ -3,6 +3,7 @@ from flask.json import JSONEncoder
 from flask_sqlalchemy import SQLAlchemy
 
 import settings
+import random
 
 
 __db = None
@@ -29,3 +30,8 @@ def get_app():
     app.json_encoder = Encoder
     __db = SQLAlchemy(app)
     return app
+
+
+def generate_id(length=8):
+    __str = '1234567890qwertyuiopasdfghjklzxcvbnm'
+    return ''.join(map(lambda x: __str[x], [random.randint(0, len(__str)-1) for i in range(length)]))
