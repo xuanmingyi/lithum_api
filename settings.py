@@ -1,4 +1,4 @@
-DATABASE_URI = 'mysql+pymysql://root:@localhost/zabbix'
+DATABASE_URI = 'mysql+pymysql://root:@172.16.29.32/zabbix'
 
 
 try:

@@ -12,7 +12,7 @@ class Validater(object):
 		self.validates.append(validate)
 
 	def run(self):
-		return map(lambda x:x.run(), self.validates)
+		return [item for item in map(lambda x:x.run(), self.validates)]
 
 
 class MinxValidate(object):
@@ -71,4 +71,16 @@ class NumberValidate(MinxValidate):
 			raise ErrValidate("{0} param < {1}(min).".format(self.name, self.min))
 		if self.max and _data > self.max:
 			raise ErrValidate("{0} param > {1}(max).".format(self.name, self.max))
+		return _data
+
+
+class ListValidate(MinxValidate):
+	def __init__(self, name, *args, **kwargs):
+		self.name = name
+		super().__init__(*args, **kwargs)
+
+	def run(self):
+		_data = list(self.data.get(self.name))
+		if _data == None:
+			raise ErrParam("Param {0} required".format(self.name))
 		return _data

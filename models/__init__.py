@@ -23,13 +23,10 @@ class TagModel(db.Model):
 
     def serialize(self):
         return {
-            "id": self.id,
-            "tag_id": self.tag_id,
+            "id": self.tag_id,
             "name": self.name,
             "color": self.color,
-            "create_at": strftime(self.create_at),
-            "update_at": strftime(self.update_at),
-            "delete_at": strftime(self.delete_at)
+            "create_at": strftime(self.create_at)
         }
 
     @staticmethod
@@ -42,3 +39,52 @@ class TagModel(db.Model):
                     create_at=datetime.datetime.now())
         db.session.add(tag)
         db.session.commit()
+
+    @classmethod
+    def update(cls, tag_id, *args, **kwargs):
+        cls.query.filter(cls.tag_id==tag_id).update({
+            "name": kwargs.get("name"),
+            "color": kwargs.get("color"),
+            "update_at": datetime.datetime.now()
+        })
+        db.session.commit()
+
+    @classmethod
+    def delete(cls, ids):
+        for id in ids:
+            tag = TagModel.query.filter_by(tag_id=id).first()
+            db.session.delete(tag)
+        db.session.commit()
+
+
+class HostModel(object):
+    @classmethod
+    def get(cls):
+        HOST_STATUS_MONITORED = 0
+        HOST_STATUS_NOT_MONITORED = 1
+        HOST_STATUS_TEMPLATE = 3
+        HOST_STATUS_PROXY_ACTIVE = 5
+        HOST_STATUS_PROXY_PASSIVE = 6
+
+        HOST_AVAILABLE_UNKNOWN = 0
+        HOST_AVAILABLE_TRUE = 1
+        HOST_AVAILABLE_FALSE = 2
+
+        hosts = {}
+        sql = "select hostid, host, name, status, available from hosts where status != 3 and available in (1, 2);"
+        results = db.engine.execute(sql)
+        for row in results:
+            name = row[2]
+            hosts[name] = {}
+            hosts[name]["hostid"] = row[0]
+            hosts[name]["items"] = []
+        for host in hosts:
+            sql = "select itemid, name, status from items where hostid = {0}".format(hosts[host]["hostid"])
+            items = db.engine.execute(sql)
+            for item in items:
+                hosts[host]["items"].append({
+                    "itemid": item["itemid"],
+                    "name": item["name"],
+                    "status": item["status"]
+                })
+        print(hosts)
