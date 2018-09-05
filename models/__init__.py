@@ -87,4 +87,4 @@ class HostModel(object):
                     "name": item["name"],
                     "status": item["status"]
                 })
-        print(hosts)
+        return hosts
